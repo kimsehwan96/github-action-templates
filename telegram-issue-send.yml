@@ -1,0 +1,23 @@
+name: send telegram message when issue is opend.
+on:
+  issues:
+    types: [opened]
+    
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          # You need to set github action secrets
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            ${{ github.actor }} opened issue:
+            issue title: ${{ github.event.issue.title }}
+            
+            Repository: ${{ github.repository }}
+            Issue url: ${{ github.event.issue.html_url }}
