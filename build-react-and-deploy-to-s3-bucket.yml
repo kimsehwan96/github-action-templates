@@ -1,0 +1,38 @@
+name: React build and Deploy to s3 bucket
+on: 
+  push:
+    branches: # You can change when this github action invoked
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code.
+        uses: actions/checkout@master
+
+      - name: Cache node modules # caching node modules
+        uses: actions/cache@v1
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.OS }}-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-build-
+            ${{ runner.OS }}-
+            
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn build
+
+      - name: Deploy # Deploy to s3 bucket
+        env:
+          # You need to set github action secrets
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: aws s3 sync ./build s3://Your-Bucket --delete --cache-control 'no-cache, must-revalidate'
+        # You need to change s3://Your-Bucket as your bucket.
+        # And this command will be remove unsynced files on **S3**
+        # This command will be add --cache-control 'no-cache, must-revalidate' at your react-app contents
+
